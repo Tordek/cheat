@@ -1,5 +1,5 @@
-#ifndef _ctf_h_
-#define _ctf_h_
+#ifndef _cheat_h_
+#define _cheat_h_
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -23,7 +23,7 @@
 
 int main(int argc, char *argv[])
 {
-#define _ctf_main_
+#define _cheat_main_
 
 #define TEST(test_name, body) test_##test_name,
 #define SETUP(body)
@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
     }
 
     return 0;
-#undef _ctf_main_
+#undef _cheat_main_
 }
 
 // Third pass: Function definitions

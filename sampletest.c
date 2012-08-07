@@ -6,7 +6,7 @@
 #define __BASE_FILE__ __FILE__
 #endif
 
-#include "ctf.h"
+#include "cheat.h"
 #include <assert.h>
 
 GLOBALS(

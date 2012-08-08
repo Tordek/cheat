@@ -102,6 +102,6 @@ int main(int argc, char *argv[])
 #define TEAR_DOWN(body) static void cheat_tear_down() body
 #define GLOBALS(body) body
 
-#define cheat_assert(assertion) if (assertion) { }
+#define cheat_assert(assertion) if (!assertion) { suite->last_test_succeeded = 0; }
 
 #endif

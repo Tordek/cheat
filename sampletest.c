@@ -32,3 +32,7 @@ TEST(strcat_makes_sense, {
 
     cheat_assert(0 == strcmp(tmp_string, "Hello, World!"));
 })
+
+TEST(failure, {
+    cheat_assert(0);
+})

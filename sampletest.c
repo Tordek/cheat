@@ -7,7 +7,6 @@
 #endif
 
 #include "cheat.h"
-#include <assert.h>
 #include <string.h>
 
 GLOBALS(
@@ -24,12 +23,12 @@ TEAR_DOWN({
 
 
 TEST(maths_still_work, {
-    assert(4 == 2+2);
+    cheat_assert(4 == 2+2);
 })
 
 TEST(strcat_makes_sense, {
     strcpy(tmp_string, "Hello, ");
     strcat(tmp_string, "World!");
 
-    assert(0 == strcmp(tmp_string, "Hello, World!"));
+    cheat_assert(0 == strcmp(tmp_string, "Hello, World!"));
 })

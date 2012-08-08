@@ -43,7 +43,8 @@ int main(int argc, char *argv[])
     int (*current_test)();
     int i;
 
-    for (i = 0, current_test = tests[i]; current_test != NULL; ++i) {
+    for (i = 0; tests[i] != NULL; ++i) {
+        current_test = tests[i]
         current_test();
     }
 

@@ -8,12 +8,13 @@
 
 #include "cheat.h"
 #include <assert.h>
+#include <string.h>
 
 GLOBALS(
     char *tmp_string;
 )
 
-SETUP({
+SET_UP({
     tmp_string = calloc(1, 50);
 })
 
@@ -24,4 +25,11 @@ TEAR_DOWN({
 
 TEST(maths_still_work, {
     assert(4 == 2+2);
+})
+
+TEST(strcat_makes_sense, {
+    strcpy(tmp_string, "Hello, ");
+    strcat(tmp_string, "World!");
+
+    assert(0 == strcmp(tmp_string, "Hello, World!"));
 })

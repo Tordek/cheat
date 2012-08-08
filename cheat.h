@@ -4,59 +4,60 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-// First pass: Function declarations.
+typedef void cheat_test();
 
-#define TEST(test_name, test_body) int test_##test_name();
-#define SETUP(body) int setup();
-#define TEAR_DOWN(body) int teardown();
+/* First pass: Function declarations. */
+
+#define TEST(test_name, test_body) static void test_##test_name();
+#define SET_UP(body) static void cheat_set_up();
+#define TEAR_DOWN(body) static void cheat_tear_down();
 #define GLOBALS(body)
 
 #include __BASE_FILE__
 
 #undef TEST
-#undef SETUP
+#undef SET_UP
 #undef TEAR_DOWN
 #undef GLOBALS
 
 
-// Second pass: Listing Functions
-
-int main(int argc, char *argv[])
-{
-#define _cheat_main_
+/* Second pass: Listing Functions */
 
 #define TEST(test_name, body) test_##test_name,
-#define SETUP(body)
+#define SET_UP(body)
 #define TEAR_DOWN(body)
 #define GLOBALS(body)
 
-    int (*tests[])(void *) = {
+int main(int argc, char *argv[])
+{
+    cheat_test *tests[] = {
 #include __BASE_FILE__
         NULL
     };
 
-#undef TEST
-#undef SETUP
-#undef TEAR_DOWN
-#undef GLOBALS
+    cheat_test **current_test = tests;
 
-    int (*current_test)();
-    int i;
+    while (*current_test) {
+        cheat_set_up();
+        (*current_test)();
+        cheat_tear_down();
 
-    for (i = 0; tests[i] != NULL; ++i) {
-        current_test = tests[i];
-        current_test();
+        current_test++;
     }
 
     return 0;
-#undef _cheat_main_
 }
 
-// Third pass: Function definitions
+#undef TEST
+#undef SET_UP
+#undef TEAR_DOWN
+#undef GLOBALS
 
-#define TEST(test_name, test_body) int test_##test_name() test_body
-#define SETUP(body) int setup() body
-#define TEAR_DOWN(body) int teardown() body
+/* Third pass: Function definitions */
+
+#define TEST(test_name, test_body) static void test_##test_name() test_body
+#define SET_UP(body) static void cheat_set_up() body
+#define TEAR_DOWN(body) static void cheat_tear_down() body
 #define GLOBALS(body) body
 
 #endif

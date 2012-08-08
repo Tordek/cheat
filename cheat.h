@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
     int i;
 
     for (i = 0; tests[i] != NULL; ++i) {
-        current_test = tests[i]
+        current_test = tests[i];
         current_test();
     }
 

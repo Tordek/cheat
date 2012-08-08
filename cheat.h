@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#define CHEAT_LOG_SIZE 256
+
 typedef void cheat_test();
 
 enum cheat_test_status {
@@ -16,6 +18,9 @@ struct cheat_test_suite {
     int test_count;
     int test_failures;
     int last_test_status;
+    char *log;
+    size_t log_len;
+    size_t log_size;
 };
 
 /* First pass: Function declarations. */
@@ -44,11 +49,15 @@ static void cheat_suite_init(struct cheat_test_suite *suite)
 {
     suite->test_count = 0;
     suite->test_failures = 0;
+    suite->log = malloc(CHEAT_LOG_SIZE);
+    suite->log_len = 0;
+    suite->log_size = CHEAT_LOG_SIZE;
 }
 
 static void cheat_suite_summary(struct cheat_test_suite *suite)
 {
-    printf("\n\n%d failed tests of %d tests run.\n", suite->test_failures, suite->test_count);
+    printf("\n%s", suite->log);
+    printf("\n%d failed tests of %d tests run.\n", suite->test_failures, suite->test_count);
 }
 
 static void cheat_test_prepare(struct cheat_test_suite *suite)
@@ -71,6 +80,27 @@ static void cheat_test_end(struct cheat_test_suite *suite)
             printf("I");
             break;
     }
+}
+
+static void cheat_log_append(struct cheat_test_suite *suite, char *message)
+{
+    size_t message_len = strlen(message);
+
+    while (suite->log_len + message_len > suite->log_size) {
+        suite->log_size *= 2;
+        suite->log = realloc(suite->log, suite->log_size);
+    }
+
+    strcat(suite->log, message);
+}
+
+static void cheat_test_assert(struct cheat_test_suite *suite, int result, char *message)
+{
+    if (result == 1)
+        return;
+
+    suite->last_test_status = CHEAT_FAILURE;
+    cheat_log_append(suite, message);
 }
 
 int main(int argc, char *argv[])
@@ -115,6 +145,6 @@ int main(int argc, char *argv[])
 #define TEAR_DOWN(body) static void cheat_tear_down() body
 #define GLOBALS(body) body
 
-#define cheat_assert(assertion) if (!assertion) { suite->last_test_status = CHEAT_FAILURE; }
+#define cheat_assert(assertion) cheat_test_assert(suite, assertion, "Failed assertion on file " __FILE__ ": " #assertion "\n")
 
 #endif

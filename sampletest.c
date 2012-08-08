@@ -36,3 +36,7 @@ TEST(strcat_makes_sense, {
 TEST(failure, {
     cheat_assert(0);
 })
+
+TEST_IGNORE(ignored, {
+        some_invalid.test->code();
+})

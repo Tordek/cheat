@@ -6,15 +6,22 @@
 
 typedef void cheat_test();
 
+enum cheat_test_status {
+    CHEAT_SUCCESS,
+    CHEAT_FAILURE,
+    CHEAT_IGNORE
+};
+
 struct cheat_test_suite {
     int test_count;
     int test_failures;
-    int last_test_succeeded;
+    int last_test_status;
 };
 
 /* First pass: Function declarations. */
 
 #define TEST(test_name, test_body) static void test_##test_name(struct cheat_test_suite *suite);
+#define TEST_IGNORE(test_name, test_body) TEST(test_name, { suite->last_test_status = CHEAT_IGNORE; })
 #define SET_UP(body) static void cheat_set_up();
 #define TEAR_DOWN(body) static void cheat_tear_down();
 #define GLOBALS(body)
@@ -46,17 +53,23 @@ static void cheat_suite_summary(struct cheat_test_suite *suite)
 
 static void cheat_test_prepare(struct cheat_test_suite *suite)
 {
-    suite->last_test_succeeded = 1;
+    suite->last_test_status = CHEAT_SUCCESS;
 }
 
 static void cheat_test_end(struct cheat_test_suite *suite)
 {
     suite->test_count++;
-    if (!suite->last_test_succeeded) {
-        suite->test_failures++;
-        printf("F");
-    } else {
-        printf(".");
+    switch (suite->last_test_status) {
+        case CHEAT_SUCCESS:
+            printf(".");
+            break;
+        case CHEAT_FAILURE:
+            printf("F");
+            suite->test_failures++;
+            break;
+        case CHEAT_IGNORE:
+            printf("I");
+            break;
     }
 }
 
@@ -102,6 +115,6 @@ int main(int argc, char *argv[])
 #define TEAR_DOWN(body) static void cheat_tear_down() body
 #define GLOBALS(body) body
 
-#define cheat_assert(assertion) if (!assertion) { suite->last_test_succeeded = 0; }
+#define cheat_assert(assertion) if (!assertion) { suite->last_test_status = CHEAT_FAILURE; }
 
 #endif

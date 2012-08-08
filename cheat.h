@@ -3,6 +3,8 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
+
 
 typedef void cheat_test();
 
@@ -18,6 +20,7 @@ struct cheat_test_suite {
     int last_test_status;
     char **log;
     size_t log_size;
+    int stdout_fd;
 };
 
 /* First pass: Function declarations. */
@@ -48,6 +51,16 @@ static void cheat_suite_init(struct cheat_test_suite *suite)
     suite->test_failures = 0;
     suite->log = NULL;
     suite->log_size = 0;
+    suite->stdout_fd = dup(STDOUT_FILENO);
+    char name_template[] = "cheat_test_XXXXXX";
+    int fakestdout = mkstemp(name_template);
+    dup2(fakestdout, STDOUT_FILENO);
+    setbuf(stdout, NULL);
+}
+
+static void cheat_suite_cleanup(struct cheat_test_suite *suite)
+{
+    dup2(suite->stdout_fd, STDOUT_FILENO);
 }
 
 static void cheat_suite_summary(struct cheat_test_suite *suite)
@@ -77,14 +90,14 @@ static void cheat_test_end(struct cheat_test_suite *suite)
 
     switch (suite->last_test_status) {
         case CHEAT_SUCCESS:
-            printf(".");
+            write(suite->stdout_fd, ".", 1);
             break;
         case CHEAT_FAILURE:
-            printf("F");
+            write(suite->stdout_fd, "F", 1);
             suite->test_failures++;
             break;
         case CHEAT_IGNORE:
-            printf("I");
+            write(suite->stdout_fd, "I", 1);
             break;
     }
 }
@@ -98,11 +111,19 @@ static void cheat_log_append(struct cheat_test_suite *suite, char *message)
 
 static void cheat_test_assert(struct cheat_test_suite *suite, int result, char *message)
 {
-    if (result == 1)
+    if (result != 0)
         return;
 
     suite->last_test_status = CHEAT_FAILURE;
     cheat_log_append(suite, message);
+}
+
+int cheat_output_contains(char *contents)
+{
+    lseek(STDOUT_FILENO, 0, SEEK_SET);
+    char buffer[255];
+    read(STDOUT_FILENO, buffer, 255);
+    return strstr(buffer, contents) != NULL;
 }
 
 int main(int argc, char *argv[])
@@ -130,6 +151,8 @@ int main(int argc, char *argv[])
         current_test++;
     }
 
+    cheat_suite_cleanup(&suite);
+
     cheat_suite_summary(&suite);
 
     return 0;
@@ -148,5 +171,6 @@ int main(int argc, char *argv[])
 #define GLOBALS(body) body
 
 #define cheat_assert(assertion) cheat_test_assert(suite, assertion, __FILE__ " failed assertion: " #assertion "\n")
+#define cheat_output_
 
 #endif

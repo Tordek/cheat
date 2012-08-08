@@ -44,3 +44,8 @@ TEST_IGNORE(ignored, {
 TEST(second_failute, {
     cheat_assert(1 == 0);
 })
+
+TEST(output_capture, {
+    printf("Something stupid");
+    cheat_assert(cheat_output_contains("Something"));
+})

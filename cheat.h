@@ -8,8 +8,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
-#include <sys/stat.h>
-#include <unistd.h>
 
 enum cheat_test_status {
     CHEAT_SUCCESS,
@@ -23,7 +21,7 @@ struct cheat_test_suite {
     enum cheat_test_status last_test_status;
     char **log;
     size_t log_size;
-    int stdout_fd;
+    FILE *stdout;
 };
 
 typedef void cheat_test(struct cheat_test_suite *suite);
@@ -52,22 +50,15 @@ typedef void cheat_test(struct cheat_test_suite *suite);
 
 static void cheat_suite_init(struct cheat_test_suite *suite)
 {
-    char name_template[] = "cheat_test_XXXXXX";
-    int fakestdout = mkstemp(name_template);
-
     suite->test_count = 0;
     suite->test_failures = 0;
     suite->log = NULL;
     suite->log_size = 0;
-
-    suite->stdout_fd = dup(STDOUT_FILENO);
-    dup2(fakestdout, STDOUT_FILENO);
-    setbuf(stdout, NULL);
+    suite->stdout = stdout;
 }
 
 static void cheat_suite_cleanup(struct cheat_test_suite *suite)
 {
-    dup2(suite->stdout_fd, STDOUT_FILENO);
 }
 
 static void cheat_suite_summary(struct cheat_test_suite *suite)
@@ -75,16 +66,16 @@ static void cheat_suite_summary(struct cheat_test_suite *suite)
     if (suite->log) {
         size_t i;
 
-        printf("\n");
+        fprintf(suite->stdout, "\n");
         for (i = 0; i < suite->log_size; ++i) {
-            printf("%s", suite->log[i]);
+            fprintf(suite->stdout, "%s", suite->log[i]);
             free(suite->log[i]);
         }
 
         free(suite->log);
     }
 
-    printf("\n%d failed tests of %d tests run.\n", suite->test_failures, suite->test_count);
+    fprintf(suite->stdout, "\n%d failed tests of %d tests run.\n", suite->test_failures, suite->test_count);
 }
 
 static void cheat_test_prepare(struct cheat_test_suite *suite)
@@ -98,14 +89,14 @@ static void cheat_test_end(struct cheat_test_suite *suite)
 
     switch (suite->last_test_status) {
         case CHEAT_SUCCESS:
-            write(suite->stdout_fd, ".", 1);
+            fprintf(suite->stdout, ".");
             break;
         case CHEAT_FAILURE:
-            write(suite->stdout_fd, "F", 1);
+            fprintf(suite->stdout, "F");
             suite->test_failures++;
             break;
         case CHEAT_IGNORE:
-            write(suite->stdout_fd, "I", 1);
+            fprintf(suite->stdout, "I");
             break;
     }
 }
@@ -177,9 +168,9 @@ int main(int argc, char *argv[])
         current_test++;
     }
 
-    cheat_suite_cleanup(&suite);
-
     cheat_suite_summary(&suite);
+
+    cheat_suite_cleanup(&suite);
 
     return suite.test_failures;
 }
@@ -199,21 +190,5 @@ int main(int argc, char *argv[])
 #define GLOBALS(body) body
 
 #define cheat_assert(assertion) cheat_test_assert(suite, assertion, #assertion, __FILE__, __LINE__);
-
-int cheat_stdout_contains(char *contents)
-{
-    char *buffer;
-    int result;
-    int len = lseek(STDOUT_FILENO, 0, SEEK_CUR);
-    lseek(STDOUT_FILENO, 0, SEEK_SET);
-    buffer = malloc(len + 1);
-
-    read(STDOUT_FILENO, buffer, len);
-    result = strstr(buffer, contents) != NULL;
-
-    free(buffer);
-
-    return result;
-}
 
 #endif

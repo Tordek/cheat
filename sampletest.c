@@ -6,6 +6,7 @@
 #define __BASE_FILE__ __FILE__
 #endif
 
+#include "cheat_helpers.h"
 #include "cheat.h"
 #include <string.h>
 
@@ -45,12 +46,12 @@ TEST(second_failute, {
     cheat_assert(1 == 0);
 })
 
-TEST(output_capture, {
+TEST_WITH_CAPTURED_STDOUT(output_capture, {
     printf("Something stupid");
     cheat_assert(cheat_stdout_contains("Something"));
 })
 
-TEST(large_output_captute, {
+TEST_WITH_CAPTURED_STDOUT(large_output_captute, {
     printf("%1000s", "Potato");
 
     cheat_assert(cheat_stdout_contains("Potato"));

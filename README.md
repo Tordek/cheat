@@ -12,7 +12,7 @@ need this guard:
     #endif
 
 Tests are defined with the `TEST` macro. You may also use the `GLOBALS`,
-`SETUP` and `TEAR_DOWN` macros to centralize your initializations.
+`SET_UP` and `TEAR_DOWN` macros to centralize your initializations.
 
 ---
 

@@ -19,7 +19,7 @@ enum cheat_test_status {
 struct cheat_test_suite {
     int test_count;
     int test_failures;
-    int last_test_status;
+    enum cheat_test_status last_test_status;
     char **log;
     size_t log_size;
     int stdout_fd;

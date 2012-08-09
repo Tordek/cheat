@@ -147,7 +147,7 @@ int main(int argc, char *argv[])
 
     cheat_suite_summary(&suite);
 
-    return 0;
+    return suite.test_failures;
 }
 
 #undef TEST

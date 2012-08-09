@@ -1,5 +1,5 @@
-#ifndef _cheat_h_
-#define _cheat_h_
+#ifndef CHEAT_H
+#define CHEAT_H
 
 #ifndef __BASE_FILE__
 #error "The __BASE_FILE__ macro is not defined. Check the README for help."

@@ -7,6 +7,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdarg.h>
 #include <unistd.h>
 
 enum cheat_test_status {
@@ -74,6 +75,7 @@ static void cheat_suite_summary(struct cheat_test_suite *suite)
         printf("\n");
         for (i = 0; i < suite->log_size; ++i) {
             printf("%s", suite->log[i]);
+            free(suite->log[i]);
         }
 
         free(suite->log);
@@ -105,20 +107,45 @@ static void cheat_test_end(struct cheat_test_suite *suite)
     }
 }
 
-static void cheat_log_append(struct cheat_test_suite *suite, char *message)
+static void cheat_log_append(struct cheat_test_suite *suite, char *fmt, ...)
 {
+    va_list ap;
+    va_start(ap, fmt);
+
+    char *buf = NULL;
+    int bufsize = 128;
+    int len;
+    do {
+        bufsize *= 2;
+        buf = realloc(NULL, bufsize);
+
+        len = vsnprintf(buf, bufsize, fmt, ap);
+    } while (len > bufsize);
+
     suite->log_size++;
     suite->log = realloc(suite->log, (suite->log_size + 1) * sizeof(char *));
-    suite->log[suite->log_size - 1] = message;
+    suite->log[suite->log_size - 1] = buf; // We give up our buffer!
+
+    va_end(ap);
 }
 
-static void cheat_test_assert(struct cheat_test_suite *suite, int result, char *message)
+static void cheat_test_assert(
+    struct cheat_test_suite *suite,
+    int result,
+    char *assertion,
+    char *filename,
+    int line)
 {
     if (result != 0)
         return;
 
     suite->last_test_status = CHEAT_FAILURE;
-    cheat_log_append(suite, message);
+    cheat_log_append(
+        suite,
+        "%s:%d: Assertion failed: '%s'.\n",
+        filename,
+        line,
+        assertion);
 }
 
 int main(int argc, char *argv[])
@@ -167,7 +194,7 @@ int main(int argc, char *argv[])
 #define TEAR_DOWN(body) static void cheat_tear_down() body
 #define GLOBALS(body) body
 
-#define cheat_assert(assertion) cheat_test_assert(suite, assertion, __FILE__ " failed assertion: " #assertion "\n")
+#define cheat_assert(assertion) cheat_test_assert(suite, assertion, #assertion, __FILE__, __LINE__);
 
 int cheat_output_contains(char *contents)
 {

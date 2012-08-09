@@ -1,6 +1,10 @@
 #ifndef _cheat_h_
 #define _cheat_h_
 
+#ifndef __BASE_FILE__
+#error "The __BASE_FILE__ macro is not defined. Check the README for help."
+#endif
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>

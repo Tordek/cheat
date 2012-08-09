@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
 enum cheat_test_status {
@@ -120,7 +121,7 @@ static void cheat_log_append(struct cheat_test_suite *suite, char *fmt, ...)
 
     do {
         bufsize *= 2;
-        buf = realloc(NULL, bufsize);
+        buf = realloc(buf, bufsize);
 
         len = vsnprintf(buf, bufsize, fmt, ap);
     } while (len > bufsize);
@@ -199,12 +200,20 @@ int main(int argc, char *argv[])
 
 #define cheat_assert(assertion) cheat_test_assert(suite, assertion, #assertion, __FILE__, __LINE__);
 
-int cheat_output_contains(char *contents)
+int cheat_stdout_contains(char *contents)
 {
-    char buffer[255];
+    char *buffer;
+    int result;
+    int len = lseek(STDOUT_FILENO, 0, SEEK_CUR);
     lseek(STDOUT_FILENO, 0, SEEK_SET);
-    read(STDOUT_FILENO, buffer, 255);
-    return strstr(buffer, contents) != NULL;
+    buffer = malloc(len + 1);
+
+    read(STDOUT_FILENO, buffer, len);
+    result = strstr(buffer, contents) != NULL;
+
+    free(buffer);
+
+    return result;
 }
 
 #endif

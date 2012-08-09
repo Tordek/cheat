@@ -49,3 +49,9 @@ TEST(output_capture, {
     printf("Something stupid");
     cheat_assert(cheat_stdout_contains("Something"));
 })
+
+TEST(large_output_captute, {
+    printf("%1000s", "Potato");
+
+    cheat_assert(cheat_stdout_contains("Potato"));
+})

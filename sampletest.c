@@ -47,5 +47,5 @@ TEST(second_failute, {
 
 TEST(output_capture, {
     printf("Something stupid");
-    cheat_assert(cheat_output_contains("Something"));
+    cheat_assert(cheat_stdout_contains("Something"));
 })

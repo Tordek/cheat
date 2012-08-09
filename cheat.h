@@ -9,9 +9,6 @@
 #include <stdio.h>
 #include <unistd.h>
 
-
-typedef void cheat_test();
-
 enum cheat_test_status {
     CHEAT_SUCCESS,
     CHEAT_FAILURE,
@@ -26,6 +23,8 @@ struct cheat_test_suite {
     size_t log_size;
     int stdout_fd;
 };
+
+typedef void cheat_test(struct cheat_test_suite *suite);
 
 /* First pass: Function declarations. */
 

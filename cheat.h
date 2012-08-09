@@ -118,14 +118,6 @@ static void cheat_test_assert(struct cheat_test_suite *suite, int result, char *
     cheat_log_append(suite, message);
 }
 
-int cheat_output_contains(char *contents)
-{
-    lseek(STDOUT_FILENO, 0, SEEK_SET);
-    char buffer[255];
-    read(STDOUT_FILENO, buffer, 255);
-    return strstr(buffer, contents) != NULL;
-}
-
 int main(int argc, char *argv[])
 {
     struct cheat_test_suite suite;
@@ -164,6 +156,8 @@ int main(int argc, char *argv[])
 #undef GLOBALS
 
 /* Third pass: Function definitions */
+/* Also, public interface. You're only suppossed to use stuff below this line.
+ */
 
 #define TEST(test_name, test_body) static void test_##test_name(struct cheat_test_suite *suite) test_body
 #define SET_UP(body) static void cheat_set_up() body
@@ -171,6 +165,13 @@ int main(int argc, char *argv[])
 #define GLOBALS(body) body
 
 #define cheat_assert(assertion) cheat_test_assert(suite, assertion, __FILE__ " failed assertion: " #assertion "\n")
-#define cheat_output_
+
+int cheat_output_contains(char *contents)
+{
+    lseek(STDOUT_FILENO, 0, SEEK_SET);
+    char buffer[255];
+    read(STDOUT_FILENO, buffer, 255);
+    return strstr(buffer, contents) != NULL;
+}
 
 #endif

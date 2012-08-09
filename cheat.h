@@ -51,13 +51,15 @@ typedef void cheat_test(struct cheat_test_suite *suite);
 
 static void cheat_suite_init(struct cheat_test_suite *suite)
 {
+    char name_template[] = "cheat_test_XXXXXX";
+    int fakestdout = mkstemp(name_template);
+
     suite->test_count = 0;
     suite->test_failures = 0;
     suite->log = NULL;
     suite->log_size = 0;
+
     suite->stdout_fd = dup(STDOUT_FILENO);
-    char name_template[] = "cheat_test_XXXXXX";
-    int fakestdout = mkstemp(name_template);
     dup2(fakestdout, STDOUT_FILENO);
     setbuf(stdout, NULL);
 }
@@ -70,7 +72,7 @@ static void cheat_suite_cleanup(struct cheat_test_suite *suite)
 static void cheat_suite_summary(struct cheat_test_suite *suite)
 {
     if (suite->log) {
-        int i;
+        size_t i;
 
         printf("\n");
         for (i = 0; i < suite->log_size; ++i) {
@@ -109,12 +111,13 @@ static void cheat_test_end(struct cheat_test_suite *suite)
 
 static void cheat_log_append(struct cheat_test_suite *suite, char *fmt, ...)
 {
-    va_list ap;
-    va_start(ap, fmt);
-
     char *buf = NULL;
     int bufsize = 128;
     int len;
+
+    va_list ap;
+    va_start(ap, fmt);
+
     do {
         bufsize *= 2;
         buf = realloc(NULL, bufsize);
@@ -124,7 +127,7 @@ static void cheat_log_append(struct cheat_test_suite *suite, char *fmt, ...)
 
     suite->log_size++;
     suite->log = realloc(suite->log, (suite->log_size + 1) * sizeof(char *));
-    suite->log[suite->log_size - 1] = buf; // We give up our buffer!
+    suite->log[suite->log_size - 1] = buf; /* We give up our buffer! */
 
     va_end(ap);
 }
@@ -198,8 +201,8 @@ int main(int argc, char *argv[])
 
 int cheat_output_contains(char *contents)
 {
-    lseek(STDOUT_FILENO, 0, SEEK_SET);
     char buffer[255];
+    lseek(STDOUT_FILENO, 0, SEEK_SET);
     read(STDOUT_FILENO, buffer, 255);
     return strstr(buffer, contents) != NULL;
 }

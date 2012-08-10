@@ -48,11 +48,16 @@ TEST(second_failute, {
 
 TEST_WITH_CAPTURED_STDOUT(output_capture, {
     printf("Something stupid");
-    cheat_assert(cheat_stdout_contains("Something"));
+    cheat_assert(cheat_stream_contains(stdout, "Something"));
 })
 
 TEST_WITH_CAPTURED_STDOUT(large_output_captute, {
     printf("%1000s", "Potato");
 
-    cheat_assert(cheat_stdout_contains("Potato"));
+    cheat_assert(cheat_stream_contains(stdout, "Potato"));
+})
+
+TEST_WITH_CAPTURED_STDERR(stderr_capture, {
+    fprintf(stderr, "You can also capture errors!");
+    cheat_assert(cheat_stream_contains(stderr, "errors"));
 })

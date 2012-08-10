@@ -59,6 +59,7 @@ static void cheat_suite_init(struct cheat_test_suite *suite)
 
 static void cheat_suite_cleanup(struct cheat_test_suite *suite)
 {
+    (void) suite;
 }
 
 static void cheat_suite_summary(struct cheat_test_suite *suite)
@@ -154,6 +155,9 @@ int main(int argc, char *argv[])
 
     cheat_test **current_test = tests;
 
+    (void) argc;
+    (void) argv;
+
     cheat_suite_init(&suite);
 
     while (*current_test) {
@@ -189,6 +193,6 @@ int main(int argc, char *argv[])
 #define TEAR_DOWN(body) static void cheat_tear_down() body
 #define GLOBALS(body) body
 
-#define cheat_assert(assertion) cheat_test_assert(suite, assertion, #assertion, __FILE__, __LINE__);
+#define cheat_assert(assertion) cheat_test_assert(suite, assertion, #assertion, __FILE__, __LINE__)
 
 #endif

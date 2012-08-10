@@ -14,6 +14,9 @@ need this guard:
 Tests are defined with the `TEST` macro. You may also use the `GLOBALS`,
 `SET_UP` and `TEAR_DOWN` macros to centralize your initializations.
 
+There are additional helpers in the `cheat_helpers.h` file, which provide
+stuff to help you test some harder to test stuff.
+
 ---
 
 CHEAT is Copyrighted (c) 2012 Guillermo "Tordek" Freschi.

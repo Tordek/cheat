@@ -177,7 +177,7 @@ static void run_isolated_test(struct cheat_test_s *test, struct cheat_test_suite
     } else if (pid == 0) {
         close(pipefd[0]);
         dup2(pipefd[1], STDOUT_FILENO);
-        execl("/proc/self/exe", suite->argv0, test->name, NULL);
+        execl(suite->argv0, suite->argv0, test->name, NULL);
         exit(EXIT_FAILURE);
     } else {
         int status;

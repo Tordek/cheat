@@ -61,3 +61,9 @@ TEST_WITH_CAPTURED_STDERR(stderr_capture, {
     fprintf(stderr, "You can also capture errors!");
     cheat_assert(cheat_stream_contains(stderr, "errors"));
 })
+
+TEST(segfault, {
+    int *foo = NULL;
+    printf("%d", *foo);
+    cheat_assert(0);
+})

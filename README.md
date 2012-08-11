@@ -17,6 +17,17 @@ Tests are defined with the `TEST` macro. You may also use the `GLOBALS`,
 There are additional helpers in the `cheat_helpers.h` file, which provide
 stuff to help you test some harder to test stuff.
 
+Running
+-------
+
+When you compile your test file, you get a complete executable. It shows a
+pretty progress bar thingie and all.
+
+By default, it runs each test in an isolated subprocess (assuming your system
+is supported (and that currently includes only Unix (and has only been tested
+in Linux)), so all tests still run, even if one segfaults. You can specify the
+`--nofork` flag, to make it run everything in the same process, if you need to.
+
 ---
 
 CHEAT is Copyrighted (c) 2012 Guillermo "Tordek" Freschi.

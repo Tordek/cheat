@@ -196,7 +196,7 @@ static void run_isolated_test(struct cheat_test_s *test, struct cheat_test_suite
                                                     : CHEAT_SEGFAULT;
     }
 #else
-    fprintf(stderr, "Running isolated tests not supported in this environmente. Please use --nofork.\n");
+    fprintf(stderr, "Running isolated tests not supported in this environment. Please use --nofork.\n");
 #endif
 }
 

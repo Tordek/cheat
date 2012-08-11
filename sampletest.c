@@ -42,7 +42,7 @@ TEST_IGNORE(ignored, {
         some_invalid.test->code();
 })
 
-TEST(second_failute, {
+TEST(second_failure, {
     cheat_assert(1 == 0);
 })
 

@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <string.h>
 
+int cheat_stream_contains(FILE *stream, char const *contents);
+
 #ifdef unix
 
 #include <unistd.h>
@@ -29,7 +31,7 @@
             CHEAT_WRAP_STREAM(stdout, STDOUT_FILENO, name, body)\
         ))
 
-int cheat_stream_contains(FILE *stream, char *contents)
+int cheat_stream_contains(FILE *stream, char const *contents)
 {
     char *buffer;
     int result;

@@ -30,7 +30,7 @@ struct cheat_test_suite {
 typedef void cheat_test(struct cheat_test_suite *suite);
 
 struct cheat_test_s {
-    char *name;
+    char const *name;
     cheat_test *test;
 };
 
@@ -102,7 +102,7 @@ static void cheat_test_end(struct cheat_test_suite *suite)
 
 static void cheat_log_append(struct cheat_test_suite *suite, char *message, int len)
 {
-    char *buf = malloc(len);
+    char * const buf = malloc(len);
     memcpy(buf, message, len);
 
     suite->log_size++;
@@ -113,8 +113,8 @@ static void cheat_log_append(struct cheat_test_suite *suite, char *message, int 
 static void cheat_test_assert(
         struct cheat_test_suite *suite,
         int result,
-        char *assertion,
-        char *filename,
+        char const *assertion,
+        char const *filename,
         int line)
 {
     if (result != 0)
@@ -146,7 +146,7 @@ static void cheat_test_assert(
     }
 }
 
-static int run_test(struct cheat_test_s *test, struct cheat_test_suite *suite)
+static int run_test(struct cheat_test_s const *test, struct cheat_test_suite *suite)
 {
     suite->last_test_status = CHEAT_SUCCESS;
 
@@ -162,7 +162,9 @@ static int run_test(struct cheat_test_s *test, struct cheat_test_suite *suite)
 #include <sys/wait.h>
 #endif
 
-static void run_isolated_test(struct cheat_test_s *test, struct cheat_test_suite *suite)
+static void run_isolated_test(
+        struct cheat_test_s const *test,
+        struct cheat_test_suite *suite)
 {
 #ifdef unix
     pid_t pid;
@@ -209,14 +211,14 @@ static void run_isolated_test(struct cheat_test_s *test, struct cheat_test_suite
 
 int main(int argc, char *argv[])
 {
-    struct cheat_test_suite suite;
-
-    struct cheat_test_s tests[] = {
+    struct cheat_test_s const tests[] = {
 #include __BASE_FILE__
     };
 
+    int const test_count = sizeof(tests) / sizeof (struct cheat_test_s);
+
+    struct cheat_test_suite suite;
     int i;
-    const int test_count = sizeof(tests) / sizeof (struct cheat_test_s);
 
     cheat_suite_init(&suite, argv[0]);
 
@@ -229,7 +231,7 @@ int main(int argc, char *argv[])
             }
         } else {
             for (i = 0; i < test_count; ++i) {
-                struct cheat_test_s current_test = tests[i];
+                struct cheat_test_s const current_test = tests[i];
 
                 if (strcmp(argv[1], current_test.name) == 0) {
                     return run_test(&current_test, &suite);
@@ -241,7 +243,7 @@ int main(int argc, char *argv[])
     }
 
     for (i = 0; i < test_count; ++i) {
-        struct cheat_test_s current_test = tests[i];
+        struct cheat_test_s const current_test = tests[i];
 
         if (suite.nofork) {
             run_test(&current_test, &suite);

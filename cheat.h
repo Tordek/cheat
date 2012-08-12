@@ -9,9 +9,6 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-#include <sys/types.h>
-#include <sys/wait.h>
-
 enum cheat_test_status {
     CHEAT_SUCCESS,
     CHEAT_FAILURE,
@@ -37,10 +34,13 @@ struct cheat_test_s {
     cheat_test *test;
 };
 
+/* Public interface: helpers */
+
+#define TEST_IGNORE(test_name, test_body) TEST(test_name, { suite->last_test_status = CHEAT_IGNORE; })
+
 /* First pass: Function declarations. */
 
 #define TEST(test_name, test_body) static void test_##test_name(struct cheat_test_suite *suite);
-#define TEST_IGNORE(test_name, test_body) TEST(test_name, { suite->last_test_status = CHEAT_IGNORE; })
 #define SET_UP(body) static void cheat_set_up();
 #define TEAR_DOWN(body) static void cheat_tear_down();
 #define GLOBALS(body)
@@ -54,10 +54,7 @@ struct cheat_test_s {
 
 static void cheat_suite_init(struct cheat_test_suite *suite, char *argv0)
 {
-    suite->test_count = 0;
-    suite->test_failures = 0;
-    suite->log = NULL;
-    suite->log_size = 0;
+    memset(suite, 0, sizeof(struct cheat_test_suite));
     suite->stdout = stdout;
     suite->argv0 = argv0;
 }
@@ -67,9 +64,9 @@ static void cheat_suite_summary(struct cheat_test_suite *suite)
     if (suite->log) {
         size_t i;
 
-        fprintf(suite->stdout, "\n");
+        fputs("\n", suite->stdout);
         for (i = 0; i < suite->log_size; ++i) {
-            fprintf(suite->stdout, "%s", suite->log[i]);
+            fputs(suite->log[i], suite->stdout);
             free(suite->log[i]);
         }
 
@@ -85,25 +82,23 @@ static void cheat_test_end(struct cheat_test_suite *suite)
 
     switch (suite->last_test_status) {
         case CHEAT_SUCCESS:
-            fprintf(suite->stdout, ".");
+            fputc('.', suite->stdout);
             break;
         case CHEAT_FAILURE:
-            fprintf(suite->stdout, "F");
+            fputc('F', suite->stdout);
             suite->test_failures++;
             break;
         case CHEAT_IGNORE:
-            fprintf(suite->stdout, "I");
+            fputc('I', suite->stdout);
             break;
         case CHEAT_SEGFAULT:
-            fprintf(suite->stdout, "S");
+            fputc('S', suite->stdout);
             suite->test_failures++;
             break;
         default:
             exit(-1);
     }
 }
-
-#include <assert.h>
 
 static void cheat_log_append(struct cheat_test_suite *suite, char *message, int len)
 {
@@ -162,6 +157,11 @@ static int run_test(struct cheat_test_s *test, struct cheat_test_suite *suite)
     return suite->last_test_status;
 }
 
+#ifdef unix
+#include <sys/types.h>
+#include <sys/wait.h>
+#endif
+
 static void run_isolated_test(struct cheat_test_s *test, struct cheat_test_suite *suite)
 {
 #ifdef unix
@@ -196,7 +196,7 @@ static void run_isolated_test(struct cheat_test_s *test, struct cheat_test_suite
                                                     : CHEAT_SEGFAULT;
     }
 #else
-    fprintf(stderr, "Running isolated tests not supported in this environment. Please use --nofork.\n");
+    fputs("Running isolated tests not supported in this environment. Please use --nofork.\n", stderr);
 #endif
 }
 
@@ -263,8 +263,7 @@ int main(int argc, char *argv[])
 #undef GLOBALS
 
 /* Third pass: Function definitions */
-/* Also, public interface. You're only suppossed to use stuff below this line.
-*/
+/* Part of the public interface. See at the top for more helpers. */
 
 #define TEST(test_name, test_body) static void test_##test_name(struct cheat_test_suite *suite) test_body
 #define SET_UP(body) static void cheat_set_up() body

@@ -41,8 +41,8 @@ struct cheat_test_s {
 /* First pass: Function declarations. */
 
 #define TEST(test_name, test_body) static void test_##test_name(struct cheat_test_suite *suite);
-#define SET_UP(body) static void cheat_set_up();
-#define TEAR_DOWN(body) static void cheat_tear_down();
+#define SET_UP(body) static void cheat_set_up(void);
+#define TEAR_DOWN(body) static void cheat_tear_down(void);
 #define GLOBALS(body)
 
 #include __BASE_FILE__
@@ -266,8 +266,8 @@ int main(int argc, char *argv[])
 /* Part of the public interface. See at the top for more helpers. */
 
 #define TEST(test_name, test_body) static void test_##test_name(struct cheat_test_suite *suite) test_body
-#define SET_UP(body) static void cheat_set_up() body
-#define TEAR_DOWN(body) static void cheat_tear_down() body
+#define SET_UP(body) static void cheat_set_up(void) body
+#define TEAR_DOWN(body) static void cheat_tear_down(void) body
 #define GLOBALS(body) body
 
 #define cheat_assert(assertion) cheat_test_assert(suite, assertion, #assertion, __FILE__, __LINE__)

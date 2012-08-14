@@ -165,6 +165,7 @@ static int run_test(struct cheat_test_s const *test, struct cheat_test_suite *su
 
 #ifdef unix
 
+#include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 

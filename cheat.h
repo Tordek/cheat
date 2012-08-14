@@ -24,7 +24,7 @@ struct cheat_test_suite {
     char *argv0;
     size_t log_size;
     int nofork;
-    FILE *stdout;
+    FILE *captured_stdout;
 };
 
 typedef void cheat_test(struct cheat_test_suite *suite);
@@ -55,7 +55,7 @@ struct cheat_test_s {
 static void cheat_suite_init(struct cheat_test_suite *suite, char *argv0)
 {
     memset(suite, 0, sizeof(struct cheat_test_suite));
-    suite->stdout = stdout;
+    suite->captured_stdout = stdout;
     suite->argv0 = argv0;
 }
 
@@ -64,16 +64,16 @@ static void cheat_suite_summary(struct cheat_test_suite *suite)
     if (suite->log) {
         size_t i;
 
-        fputs("\n", suite->stdout);
+        fputs("\n", suite->captured_stdout);
         for (i = 0; i < suite->log_size; ++i) {
-            fputs(suite->log[i], suite->stdout);
+            fputs(suite->log[i], suite->captured_stdout);
             free(suite->log[i]);
         }
 
         free(suite->log);
     }
 
-    fprintf(suite->stdout, "\n%d failed tests of %d tests run.\n", suite->test_failures, suite->test_count);
+    fprintf(suite->captured_stdout, "\n%d failed tests of %d tests run.\n", suite->test_failures, suite->test_count);
 }
 
 static void cheat_test_end(struct cheat_test_suite *suite)
@@ -82,17 +82,17 @@ static void cheat_test_end(struct cheat_test_suite *suite)
 
     switch (suite->last_test_status) {
         case CHEAT_SUCCESS:
-            fputc('.', suite->stdout);
+            fputc('.', suite->captured_stdout);
             break;
         case CHEAT_FAILURE:
-            fputc('F', suite->stdout);
+            fputc('F', suite->captured_stdout);
             suite->test_failures++;
             break;
         case CHEAT_IGNORE:
-            fputc('I', suite->stdout);
+            fputc('I', suite->captured_stdout);
             break;
         case CHEAT_SEGFAULT:
-            fputc('S', suite->stdout);
+            fputc('S', suite->captured_stdout);
             suite->test_failures++;
             break;
         default:
@@ -102,8 +102,14 @@ static void cheat_test_end(struct cheat_test_suite *suite)
 
 static void cheat_log_append(struct cheat_test_suite *suite, char *message, int len)
 {
-    char * const buf = malloc(len);
+    if (len == 0) {
+        return;
+    }
+
+    char * const buf = malloc(len + 1);
     memcpy(buf, message, len);
+
+    buf[len] = '\0';
 
     suite->log_size++;
     suite->log = realloc(suite->log, (suite->log_size + 1) * sizeof(char *));
@@ -127,18 +133,18 @@ static void cheat_test_assert(
         int bufsize;
 
         do {
-            bufsize = len;
+            bufsize = (len + 1);
             buffer = realloc(buffer, bufsize);
             len = snprintf(buffer, bufsize,
                     "%s:%d: Assertion failed: '%s'.\n",
                     filename,
                     line,
                     assertion);
-        } while (bufsize != len);
+        } while (bufsize != (len + 1));
 
         cheat_log_append(suite, buffer, bufsize);
     } else {
-        fprintf(suite->stdout,
+        fprintf(suite->captured_stdout,
                 "%s:%d: Assertion failed: '%s'.\n",
                 filename,
                 line,
@@ -158,8 +164,14 @@ static int run_test(struct cheat_test_s const *test, struct cheat_test_suite *su
 }
 
 #ifdef unix
+
 #include <sys/types.h>
 #include <sys/wait.h>
+
+#elif defined _WIN32
+
+#include <windows.h>
+
 #endif
 
 static void run_isolated_test(
@@ -197,8 +209,67 @@ static void run_isolated_test(
         suite->last_test_status = WIFEXITED(status) ? WEXITSTATUS(status)
                                                     : CHEAT_SEGFAULT;
     }
+
+#elif defined _WIN32
+
+    SECURITY_ATTRIBUTES sa;
+    sa.nLength = sizeof(SECURITY_ATTRIBUTES);
+    sa.bInheritHandle = TRUE;
+    sa.lpSecurityDescriptor = NULL;
+
+    HANDLE stdoutPipe_read;
+    HANDLE stdoutPipe_write;
+    CreatePipe(&stdoutPipe_read, &stdoutPipe_write, &sa, 0);
+
+    STARTUPINFO si = {
+        .cb = sizeof(STARTUPINFO),
+        .dwFlags = STARTF_USESTDHANDLES,
+        .hStdOutput = stdoutPipe_write
+    };
+
+    PROCESS_INFORMATION pi = {0};
+
+    CHAR command[255];
+    snprintf(command, 255, "%s %s", suite->argv0, test->name);
+
+    CreateProcess(
+        NULL,
+        command,
+        NULL,
+        NULL,
+        TRUE,
+        0,
+        NULL,
+        NULL,
+        &si,
+        &pi);
+
+    CloseHandle(stdoutPipe_write);
+
+    DWORD len;
+    DWORD maxlen = 255;
+    CHAR buffer[255];
+
+    do {
+        ReadFile(stdoutPipe_read, buffer, maxlen, &len, NULL);
+        buffer[len] = '\0';
+        cheat_log_append(suite, buffer, len);
+    } while (len > 0);
+
+    WaitForSingleObject(pi.hProcess, INFINITE);
+
+    DWORD status;
+    GetExitCodeProcess(pi.hProcess, &status);
+
+    suite->last_test_status = (status & 0x80000000) ? CHEAT_SEGFAULT
+                                                    : status;
+
+    CloseHandle(pi.hProcess);
+    CloseHandle(pi.hThread);
+
 #else
     fputs("Running isolated tests not supported in this environment. Please use --nofork.\n", stderr);
+    exit(EXIT_FAILURE);
 #endif
 }
 

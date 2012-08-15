@@ -102,11 +102,13 @@ static void cheat_test_end(struct cheat_test_suite *suite)
 
 static void cheat_log_append(struct cheat_test_suite *suite, char *message, int len)
 {
+    char *buf;
+
     if (len == 0) {
         return;
     }
 
-    char * const buf = malloc(len + 1);
+    buf = malloc(len + 1);
     memcpy(buf, message, len);
 
     buf[len] = '\0';

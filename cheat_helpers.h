@@ -20,9 +20,11 @@ int cheat_stream_contains(FILE *stream, char const *contents);
 #define dup2 _dup2
 
 int mkstemp(char * pattern) {
-    // TODO: Generate a uUnique to avoid using CREATE_ALWAYS.
-    // Even better: get rid of this, and try to open in a do..while loop
-    // to match mkstemp.
+    /*
+     * TODO: Generate a uUnique to avoid using CREATE_ALWAYS.
+     * Even better: get rid of this, and try to open in a do..while loop
+     * to match mkstemp.
+     */
     char tempFileName[MAX_PATH];
     GetTempFileName(
         ".",
@@ -35,7 +37,7 @@ int mkstemp(char * pattern) {
         GENERIC_READ | GENERIC_WRITE,
         0,
         NULL,
-        CREATE_ALWAYS, // Bad. Should be _NEW, to avoid races.
+        CREATE_ALWAYS, /* Bad. Should be _NEW, to avoid races. */
         0,
         NULL);
 

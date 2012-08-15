@@ -7,47 +7,6 @@
 
 int cheat_stream_contains(FILE *stream, char const *contents);
 
-#ifdef unix
-
-#include <unistd.h>
-
-#elif defined _WIN32
-
-#include <windows.h>
-#include <fcntl.h>
-
-#define dup _dup
-#define dup2 _dup2
-
-int mkstemp(char * pattern) {
-    /*
-     * TODO: Generate a uUnique to avoid using CREATE_ALWAYS.
-     * Even better: get rid of this, and try to open in a do..while loop
-     * to match mkstemp.
-     */
-    char tempFileName[MAX_PATH];
-    GetTempFileName(
-        ".",
-        pattern,
-        0,
-        tempFileName);
-
-    HANDLE tempFile = CreateFile(
-        tempFileName,
-        GENERIC_READ | GENERIC_WRITE,
-        0,
-        NULL,
-        CREATE_ALWAYS, /* Bad. Should be _NEW, to avoid races. */
-        0,
-        NULL);
-
-    return _open_osfhandle((intptr_t)tempFile, _O_APPEND);
-}
-
-#else
-#error "Unsupported platform. Sorry!"
-#endif
-
 #define CHEAT_WRAP_STREAM(stream, stream_fd, name, body) \
         char filename_pattern[] = "cheat_captured_stream_" #name "_XXXXXX";\
         int original_stream;\
@@ -87,5 +46,55 @@ int cheat_stream_contains(FILE *stream, char const *contents)
 
     return result;
 }
+
+#ifdef unix
+
+#include <unistd.h>
+
+#elif defined _WIN32
+
+#include <windows.h>
+#include <fcntl.h>
+
+#define dup _dup
+#define dup2 _dup2
+
+int mkstemp(char * pattern) {
+    /*
+     * TODO: Generate a uUnique to avoid using CREATE_ALWAYS.
+     * Even better: get rid of this, and try to open in a do..while loop
+     * to match mkstemp.
+     */
+    char tempFileName[MAX_PATH];
+    GetTempFileName(
+        ".",
+        pattern,
+        0,
+        tempFileName);
+
+    HANDLE tempFile = CreateFile(
+        tempFileName,
+        GENERIC_READ | GENERIC_WRITE,
+        0,
+        NULL,
+        CREATE_ALWAYS, /* Bad. Should be _NEW, to avoid races. */
+        0,
+        NULL);
+
+    return _open_osfhandle((intptr_t)tempFile, _O_APPEND);
+}
+
+#else
+
+#warning "Capturing output not supported in this platform. Capturing tests will be ignored."
+
+#undef TEST_WITH_CAPTURED_STDOUT
+#undef TEST_WITH_CAPTURED_STDERR
+#undef TEST_WITH_CAPTURED_OUTPUT
+#define TEST_WITH_CAPTURED_STDOUT(name, body) TEST_IGNORE(name, {})
+#define TEST_WITH_CAPTURED_STDERR(name, body) TEST_IGNORE(name, {})
+#define TEST_WITH_CAPTURED_OUTPUT(name, body) TEST_IGNORE(name, {})
+
+#endif
 
 #endif

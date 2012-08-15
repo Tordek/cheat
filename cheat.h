@@ -271,6 +271,7 @@ static void run_isolated_test(
     CloseHandle(pi.hThread);
 
 #else
+#warning "Running isolated tests not supported in this environment. You will need to use --nofork."
     fputs("Running isolated tests not supported in this environment. Please use --nofork.\n", stderr);
     exit(EXIT_FAILURE);
 #endif

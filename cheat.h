@@ -281,14 +281,19 @@ static void run_isolated_test(
 #define TEAR_DOWN(body)
 #define GLOBALS(body)
 
+static struct cheat_test_s const cheat_tests[] = {
+#include __BASE_FILE__
+};
+
+static int const cheat_test_count = sizeof(cheat_tests) / sizeof (struct cheat_test_s);
+
+#undef TEST
+#undef SET_UP
+#undef TEAR_DOWN
+#undef GLOBALS
+
 int main(int argc, char *argv[])
 {
-    struct cheat_test_s const tests[] = {
-#include __BASE_FILE__
-    };
-
-    int const test_count = sizeof(tests) / sizeof (struct cheat_test_s);
-
     struct cheat_test_suite suite;
     int i;
 
@@ -302,8 +307,8 @@ int main(int argc, char *argv[])
                 suite.nofork = 1;
             }
         } else {
-            for (i = 0; i < test_count; ++i) {
-                struct cheat_test_s const current_test = tests[i];
+            for (i = 0; i < cheat_test_count; ++i) {
+                struct cheat_test_s const current_test = cheat_tests[i];
 
                 if (strcmp(argv[1], current_test.name) == 0) {
                     return run_test(&current_test, &suite);
@@ -314,8 +319,8 @@ int main(int argc, char *argv[])
         }
     }
 
-    for (i = 0; i < test_count; ++i) {
-        struct cheat_test_s const current_test = tests[i];
+    for (i = 0; i < cheat_test_count; ++i) {
+        struct cheat_test_s const current_test = cheat_tests[i];
 
         if (suite.nofork) {
             run_test(&current_test, &suite);
@@ -330,11 +335,6 @@ int main(int argc, char *argv[])
 
     return suite.test_failures;
 }
-
-#undef TEST
-#undef SET_UP
-#undef TEAR_DOWN
-#undef GLOBALS
 
 /* Third pass: Function definitions */
 /* Part of the public interface. See at the top for more helpers. */

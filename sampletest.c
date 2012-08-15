@@ -51,7 +51,7 @@ TEST_WITH_CAPTURED_STDOUT(output_capture, {
     cheat_assert(cheat_stream_contains(stdout, "Something"));
 })
 
-TEST_WITH_CAPTURED_STDOUT(large_output_captute, {
+TEST_WITH_CAPTURED_STDOUT(large_output_capture, {
     printf("%1000s", "Potato");
 
     cheat_assert(cheat_stream_contains(stdout, "Potato"));

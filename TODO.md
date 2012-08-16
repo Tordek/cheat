@@ -1,2 +1,2 @@
 * provide fake stdin
-* can this be made less unix-dependant?
+* attempt to make SET_UP and TEAR_DOWN optional

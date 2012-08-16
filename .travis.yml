@@ -2,4 +2,4 @@ language: c
 compiler:
   - gcc
   - clang
-script: $CC sampletest.c
+script: $CC sampletest.c && $CC .travistest.c && ./a.out

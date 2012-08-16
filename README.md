@@ -1,3 +1,5 @@
+[![Build Status](https://secure.travis-ci.org/Tordek/cheat.png)](http://travis-ci.org/Tordek/cheat)
+
 CHEAT - The sillily-named C testing framework
 =============================================
 

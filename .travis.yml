@@ -2,4 +2,4 @@ language: c
 compiler:
   - gcc
   - clang
-script: $CC sampletests.c
+script: $CC sampletest.c

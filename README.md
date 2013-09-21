@@ -30,6 +30,17 @@ Windows and Linux), so all tests still run, even if one segfaults. You can
 specify the `--nofork` flag, to make it run everything in the same process, if
 you need to.
 
+
+Why?
+----
+
+Because abusing systems for hackish results is fun. This was an exercise in
+how far I could push the C preprocessor to build a "framework" with a simple
+syntax for the user.
+
+It's not meant for serious work, and it's easy to run into issues (do report
+them and send patches!), but if it works for you, more power to you!
+
 ---
 
 CHEAT is Copyrighted (c) 2012 Guillermo "Tordek" Freschi.

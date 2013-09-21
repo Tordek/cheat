@@ -41,6 +41,13 @@ syntax for the user.
 It's not meant for serious work, and it's easy to run into issues (do report
 them and send patches!), but if it works for you, more power to you!
 
+Known Issues (don't say I didn't warn you)
+------------------------------------------
+
+If `cheat.h` is placed in a global include directory (like, say `/usr/include`),
+and `__BASE_FILE__` is a relative path, CHEAT won't work. Put `cheat.h` in your
+project directory.
+
 ---
 
 CHEAT is Copyrighted (c) 2012 Guillermo "Tordek" Freschi.
